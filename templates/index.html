@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BeaverJSON</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='style.css') }}"
+  />
+  <script
+    defer
+    src="{{ url_for('static', filename='app.js') }}"
+  ></script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <div class="header-top">
+        <div>
+          <h1>BeaverJSON</h1>
+          <p>Create JSON schema for structured output prompts.</p>
+        </div>
+        <button id="theme-toggle" type="button">Light mode</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="card">
+        <h2>Schema Settings</h2>
+        <label class="field">
+          <span>Schema title</span>
+          <input
+            id="schema-title"
+            type="text"
+            placeholder="response_schema"
+          />
+        </label>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Properties</h2>
+          <button id="add-property-btn" type="button">+ Add property</button>
+        </div>
+
+        <div id="properties-container" class="properties-container">
+          <!-- Property rows injected by JS -->
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Generated JSON Schema</h2>
+          <div class="actions">
+            <button id="generate-btn" type="button">Generate</button>
+            <button id="copy-btn" type="button">Copy</button>
+            <button id="download-btn" type="button">Download JSON</button>
+          </div>
+        </div>
+        <pre id="schema-output" class="schema-output">
+{
+  // Your schema will appear here
+}
+        </pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <small>Local-only tool · archiveOS · No internet required.</small>
+    </footer>
+  </div>
+</body>
+</html>
