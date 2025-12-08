@@ -37,8 +37,15 @@ After successful build, you'll find:
 ## Testing Your App
 1. Navigate to the `dist` folder
 2. Double-click `BeaverToJSON.app`
-3. The app will start a local web server
-4. Your default browser should open to `http://127.0.0.1:5050`
+3. **The app will automatically:**
+   - Start a local Flask web server on port 5050
+   - Open a **native GUI window** with embedded browser
+   - Display your web interface inside the app window
+4. **Expected behavior**:
+   - A clean desktop app window appears (no browser tabs, no address bar)
+   - Your web app loads inside this window
+   - Looks and feels like a native macOS application
+5. To quit: Simply close the app window or quit from the dock/menu bar
 
 ## Distribution
 - Share the `BeaverToJSON_macOS.zip` file with others
