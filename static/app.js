@@ -4,9 +4,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const generateBtn = document.getElementById("generate-btn");
   const copyBtn = document.getElementById("copy-btn");
   const downloadBtn = document.getElementById("download-btn");
+  const resetBtn = document.getElementById("reset-btn");
+  const presetsBtn = document.getElementById("presets-btn");
   const themeToggle = document.getElementById("theme-toggle");
   const outputEl = document.getElementById("schema-output");
   const titleInput = document.getElementById("schema-title");
+  const initialOutputText = outputEl.textContent;
   let propCounter = 0;
   let lastSchemaText = outputEl.textContent.trim();
 
@@ -155,6 +158,62 @@ document.addEventListener("DOMContentLoaded", () => {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  function getFormState() {
+    const rows = Array.from(
+      propertiesContainer.querySelectorAll(".property-row"),
+    );
+    const properties = rows.map((row) => ({
+      name: row.querySelector(".prop-name").value,
+      type: row.querySelector(".prop-type").value,
+      description: row.querySelector(".prop-description").value,
+    }));
+    return { title: titleInput.value, properties };
+  }
+
+  function setFormState(state) {
+    const safe = state || {};
+    titleInput.value = safe.title || "";
+    propertiesContainer.innerHTML = "";
+    propCounter = 0;
+    const props = Array.isArray(safe.properties) ? safe.properties : [];
+    if (props.length === 0) {
+      createPropertyRow();
+    } else {
+      props.forEach((p) => createPropertyRow(p || {}));
+    }
+    outputEl.textContent = initialOutputText;
+    lastSchemaText = "";
+  }
+
+  window.getFormState = getFormState;
+  window.setFormState = setFormState;
+
+  resetBtn.addEventListener("click", () => {
+    if (!confirm("Clear the current form and start fresh?")) return;
+    setFormState({
+      title: "",
+      properties: [
+        {
+          name: "Prompt_1",
+          type: "string",
+          description: "Main instruction for the model.",
+        },
+      ],
+    });
+  });
+
+  presetsBtn.addEventListener("click", async () => {
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.open_preset_manager) {
+      try {
+        await window.pywebview.api.open_preset_manager();
+      } catch (err) {
+        console.error("Failed to open preset manager", err);
+      }
+    } else {
+      window.open("/presets", "_blank");
+    }
   });
 
   themeToggle.addEventListener("click", () => {

@@ -1,14 +1,28 @@
 import json
 import os
+import subprocess
+import sys
 import threading
-from flask import Flask, render_template, request, Response
+from flask import Flask, render_template, request, Response, jsonify, abort
 import webview
+
+import presets
+
 app = Flask(__name__)
+
+main_window = None
+preset_window = None
+_window_lock = threading.Lock()
 
 
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/presets")
+def presets_page():
+    return render_template("presets.html")
 
 
 @app.post("/generate_schema")
@@ -76,6 +90,140 @@ def generate_schema():
     )
 
 
+@app.get("/api/presets")
+def api_list_presets():
+    return jsonify({"presets": presets.list_summaries()})
+
+
+@app.get("/api/presets/<preset_id>")
+def api_get_preset(preset_id):
+    p = presets.get_one(preset_id)
+    if p is None:
+        abort(404)
+    return jsonify(p)
+
+
+@app.post("/api/presets")
+def api_create_preset():
+    data = request.get_json(force=True) or {}
+    name = data.get("name") or ""
+    state = data.get("state") or {}
+    return jsonify(presets.save_one(name, state)), 201
+
+
+@app.put("/api/presets/<preset_id>")
+def api_update_preset(preset_id):
+    data = request.get_json(force=True) or {}
+    p = presets.update_one(
+        preset_id,
+        name=data.get("name"),
+        state=data.get("state"),
+    )
+    if p is None:
+        abort(404)
+    return jsonify(p)
+
+
+@app.delete("/api/presets/<preset_id>")
+def api_delete_preset(preset_id):
+    if not presets.delete_one(preset_id):
+        abort(404)
+    return ("", 204)
+
+
+class Bridge:
+    """JS-callable bridge exposed to both pywebview windows."""
+
+    def __init__(self, base_url):
+        self.base_url = base_url
+
+    def get_main_form_state(self):
+        if main_window is None:
+            return None
+        try:
+            return main_window.evaluate_js("window.getFormState && window.getFormState()")
+        except Exception:
+            return None
+
+    def apply_preset_to_main(self, state):
+        if main_window is None:
+            return False
+        payload = json.dumps(state or {})
+        try:
+            main_window.evaluate_js(
+                f"window.setFormState && window.setFormState({payload})"
+            )
+            return True
+        except Exception:
+            return False
+
+    def open_preset_manager(self):
+        global preset_window
+        with _window_lock:
+            if preset_window is not None:
+                try:
+                    # Bring existing window forward; pywebview lacks a true "focus",
+                    # so re-show as fallback.
+                    preset_window.show()
+                except Exception:
+                    pass
+                return True
+            window = webview.create_window(
+                title="BeaverJSON · Presets",
+                url=f"{self.base_url}/presets",
+                width=720,
+                height=620,
+                resizable=True,
+                min_size=(560, 460),
+                background_color="#FFFFFF",
+                text_select=True,
+                js_api=self,
+            )
+            preset_window = window
+
+        def _on_closed():
+            global preset_window
+            with _window_lock:
+                preset_window = None
+
+        try:
+            window.events.closed += _on_closed
+        except Exception:
+            pass
+        return True
+
+    def get_presets_path(self):
+        return str(presets.PRESETS_FILE)
+
+    def reveal_presets_dir(self):
+        path = presets.PRESETS_DIR
+        try:
+            path.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+        try:
+            if sys.platform == "darwin":
+                subprocess.run(["open", str(path)], check=False)
+            elif sys.platform.startswith("win"):
+                os.startfile(str(path))  # type: ignore[attr-defined]
+            else:
+                subprocess.run(["xdg-open", str(path)], check=False)
+            return True
+        except Exception:
+            return False
+
+    def close_preset_manager(self):
+        global preset_window
+        with _window_lock:
+            target = preset_window
+            preset_window = None
+        if target is not None:
+            try:
+                target.destroy()
+            except Exception:
+                pass
+        return True
+
 
 def start_flask_server(port):
     """Start Flask server in a separate thread"""
@@ -90,9 +238,10 @@ if __name__ == "__main__":
     flask_thread = threading.Thread(target=start_flask_server, args=(port,), daemon=True)
     flask_thread.start()
 
+    bridge = Bridge(url)
+
     # Create GUI window with embedded browser
-    # This opens a native app window that displays your web app
-    window = webview.create_window(
+    main_window = webview.create_window(
         title="Beaver to JSON",
         url=url,
         width=1200,
@@ -101,7 +250,8 @@ if __name__ == "__main__":
         fullscreen=False,
         min_size=(800, 600),
         background_color='#FFFFFF',
-        text_select=True
+        text_select=True,
+        js_api=bridge,
     )
 
     # Start the GUI - this will open the window with embedded browser

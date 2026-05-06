@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BeaverJSON · Presets</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='style.css') }}"
+  />
+  <script
+    defer
+    src="{{ url_for('static', filename='presets.js') }}"
+  ></script>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <div class="header-top">
+        <div>
+          <h1>Preset Manager</h1>
+          <p>Save the current form, reload it later.</p>
+        </div>
+        <button id="theme-toggle" type="button">Light mode</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="card">
+        <h2>Save current form</h2>
+        <div class="preset-save-row">
+          <input
+            id="new-preset-name"
+            type="text"
+            placeholder="Preset name (e.g. KPI report)"
+          />
+          <button id="save-preset-btn" type="button">Save preset</button>
+        </div>
+        <p id="save-status" class="preset-status"></p>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>
+            Saved presets
+            <button
+              id="help-toggle"
+              type="button"
+              class="help-toggle"
+              aria-expanded="false"
+              aria-controls="help-panel"
+              title="Where are my presets stored?"
+            >?</button>
+          </h2>
+          <button id="refresh-btn" type="button">Refresh</button>
+        </div>
+        <div id="help-panel" class="help-panel" hidden>
+          <p>Your presets are saved as a single JSON file on your Mac at:</p>
+          <code id="help-path">~/Library/Application Support/BeaverJSON/presets.json</code>
+          <div class="help-actions">
+            <button id="reveal-btn" type="button">Reveal in Finder</button>
+          </div>
+          <p class="help-note">
+            This folder is local to your machine — presets are not synced to iCloud
+            and survive app updates.
+          </p>
+        </div>
+        <div id="preset-list" class="preset-list">
+          <p class="preset-empty">Loading…</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <small>Stored at ~/Library/Application Support/BeaverJSON/presets.json</small>
+    </footer>
+  </div>
+</body>
+</html>
