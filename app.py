@@ -15,6 +15,26 @@ preset_window = None
 _window_lock = threading.Lock()
 
 
+def _defer_destroy(window, delay=0.05):
+    """Destroy a pywebview window from a fresh thread.
+
+    Why: when destroy() is called synchronously inside a JS-API bridge
+    call, the bridge thread is still tied to that window's WebKit engine.
+    Tearing the window down underneath itself leaves an orphan reference
+    that deadlocks Cocoa at app quit. Spawning a thread lets the bridge
+    call return first, then the window is closed cleanly.
+    """
+    def _run():
+        import time
+        if delay:
+            time.sleep(delay)
+        try:
+            window.destroy()
+        except Exception:
+            pass
+    threading.Thread(target=_run, daemon=True).start()
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -218,10 +238,7 @@ class Bridge:
             target = preset_window
             preset_window = None
         if target is not None:
-            try:
-                target.destroy()
-            except Exception:
-                pass
+            _defer_destroy(target)
         return True
 
 
@@ -253,6 +270,22 @@ if __name__ == "__main__":
         text_select=True,
         js_api=bridge,
     )
+
+    def _on_main_closed():
+        global preset_window
+        with _window_lock:
+            target = preset_window
+            preset_window = None
+        if target is not None:
+            try:
+                target.destroy()
+            except Exception:
+                pass
+
+    try:
+        main_window.events.closed += _on_main_closed
+    except Exception:
+        pass
 
     # Start the GUI - this will open the window with embedded browser
     # No external browser, no address bar, just your app in a clean window
