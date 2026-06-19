@@ -1,4 +1,4 @@
-![BVJS_image_1.png]
+![visual-asset](https://github.com/alman-os/beaver-to-JSON/blob/main/BVJS_image_1.png)
 
 # BeaverJSON
 
