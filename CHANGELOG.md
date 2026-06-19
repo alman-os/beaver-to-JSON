@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-06-19 - Presets, Reset, and notarized distribution (v2.1)
+
+### Added
+- **Reset button** — clears the form back to a single starter row to begin a new schema. Confirms once before discarding work.
+- **Preset Manager** — a separate native window to save the current form, then reload, rename, or delete presets. Presets are stored on disk at `~/Library/Application Support/BeaverJSON/presets.json` and survive reinstalls.
+- **Presets help icon** — `?` next to "Saved presets" reveals the storage path with a Reveal-in-Finder shortcut.
+- **`build_dmg.sh`** — one command to sign (Developer ID + hardened runtime), build a styled DMG, notarize via Apple, staple, and verify. Identity, team ID, notary profile, bundle ID, and DMG icon positions are all overridable via env vars.
+- **`entitlements.plist`** — hardened-runtime exceptions (JIT, unsigned executable memory, dyld env vars, library-validation) that a PyInstaller-bundled Python app needs to pass notarization.
+
+### Fixed
+- **Shutdown hang after loading a preset** — the preset window's Load button destroyed its own window from inside the JS-API bridge call, leaving an orphaned WebKit reference that deadlocked Cocoa at quit. Destroy is now deferred off the bridge thread, and the preset window cascade-closes when the main window closes.
+
+### Changed
+- **License switched from MIT to PolyForm Noncommercial 1.0.0** for public release. Free for personal, research, educational, and noncommercial use; commercial use needs a separate license.
+- **README rewritten** for public release — leads with the LLM structured-output use case, covers the three install paths, and surfaces setup gotchas up front.
+
+### Distribution
+- Releases now ship a **signed + notarized `BeaverToJSON.dmg`** that opens on other Macs without the right-click-to-open Gatekeeper workaround.
+
 ## 2025-12-08 - MAJOR: Embedded Browser GUI (v2.0)
 
 ### COMPLETE REDESIGN: Native Desktop App with Embedded Browser
