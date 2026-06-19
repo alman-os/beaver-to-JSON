@@ -1,3 +1,5 @@
+![BVJS_image_1.png]
+
 # BeaverJSON
 
 Build JSON Schemas for LLM structured-output prompts. macOS app, runs locally, no network calls.
