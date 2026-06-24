@@ -3,12 +3,26 @@ import os
 import subprocess
 import sys
 import threading
+from pathlib import Path
 from flask import Flask, render_template, request, Response, jsonify, abort
 import webview
 
 import presets
 
 app = Flask(__name__)
+
+
+AOS_DIR = Path.home() / "Documents" / "AOS" / "BeaverToJSON"
+
+
+def ensure_aos_output_dir():
+    """User-facing exports default to ~/Documents/AOS/BeaverToJSON/.
+
+    Created on demand. The save dialog opens here but the user is free
+    to navigate elsewhere.
+    """
+    AOS_DIR.mkdir(parents=True, exist_ok=True)
+    return AOS_DIR
 
 main_window = None
 preset_window = None
@@ -173,6 +187,52 @@ class Bridge:
             main_window.evaluate_js(
                 f"window.setFormState && window.setFormState({payload})"
             )
+            return True
+        except Exception:
+            return False
+
+    def save_json(self, filename, content):
+        """Save generated schema via a native Save dialog.
+
+        WKWebView ignores the <a download> attribute on blob URLs and
+        just navigates to them, so the browser-style download trick
+        dumps the raw JSON into the window instead of saving a file.
+        Going through the Python bridge gives us a real save panel.
+        """
+        if main_window is None:
+            return {"ok": False, "error": "no window"}
+        out_dir = ensure_aos_output_dir()
+        safe_name = (filename or "response_schema.json").strip() or "response_schema.json"
+        try:
+            result = main_window.create_file_dialog(
+                webview.SAVE_DIALOG,
+                directory=str(out_dir),
+                save_filename=safe_name,
+            )
+        except Exception as exc:
+            return {"ok": False, "error": str(exc)}
+        if not result:
+            return {"ok": False, "cancelled": True}
+        path = result[0] if isinstance(result, (list, tuple)) else result
+        try:
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(content)
+            return {"ok": True, "path": str(path)}
+        except Exception as exc:
+            return {"ok": False, "error": str(exc)}
+
+    def get_library_path(self):
+        return str(AOS_DIR)
+
+    def open_library(self):
+        out_dir = ensure_aos_output_dir()
+        try:
+            if sys.platform == "darwin":
+                subprocess.run(["open", str(out_dir)], check=False)
+            elif sys.platform.startswith("win"):
+                os.startfile(str(out_dir))  # type: ignore[attr-defined]
+            else:
+                subprocess.run(["xdg-open", str(out_dir)], check=False)
             return True
         except Exception:
             return False

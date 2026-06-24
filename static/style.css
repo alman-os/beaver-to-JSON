@@ -244,6 +244,34 @@ button:active {
   gap: 8px;
 }
 
+.save-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.save-hint code {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  color: var(--muted-strong);
+}
+
+#open-library-btn {
+  background: var(--ghost-btn-bg);
+  color: var(--ghost-btn-text);
+  border: 1px solid var(--card-border);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .footer {
   margin-top: 18px;
   text-align: center;

@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const downloadBtn = document.getElementById("download-btn");
   const resetBtn = document.getElementById("reset-btn");
   const presetsBtn = document.getElementById("presets-btn");
+  const openLibraryBtn = document.getElementById("open-library-btn");
   const themeToggle = document.getElementById("theme-toggle");
   const outputEl = document.getElementById("schema-output");
   const titleInput = document.getElementById("schema-title");
@@ -143,14 +144,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  downloadBtn.addEventListener("click", () => {
+  function flashDownload(label) {
+    downloadBtn.textContent = label;
+    setTimeout(() => {
+      downloadBtn.textContent = "Download JSON";
+    }, 1400);
+  }
+
+  downloadBtn.addEventListener("click", async () => {
     const text = outputEl.textContent.trim();
-    if (!text) return;
+    if (!text || text === initialOutputText.trim()) return;
 
     const filename = (titleInput.value.trim() || "response_schema") + ".json";
+
+    // In the app, save through the Python bridge — WKWebView won't honor
+    // the <a download> trick and would just navigate to the blob URL.
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.save_json) {
+      try {
+        const res = await window.pywebview.api.save_json(filename, text);
+        if (res && res.ok) {
+          flashDownload("Saved!");
+        } else if (res && res.cancelled) {
+          // user dismissed the dialog — no feedback needed
+        } else {
+          flashDownload("Save failed");
+        }
+      } catch (err) {
+        console.error("Save failed", err);
+        flashDownload("Save failed");
+      }
+      return;
+    }
+
+    // Fallback for running in a plain browser during development.
     const blob = new Blob([text], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
@@ -159,6 +187,18 @@ document.addEventListener("DOMContentLoaded", () => {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
+
+  if (openLibraryBtn) {
+    openLibraryBtn.addEventListener("click", async () => {
+      if (window.pywebview && window.pywebview.api && window.pywebview.api.open_library) {
+        try {
+          await window.pywebview.api.open_library();
+        } catch (err) {
+          console.error("Open library failed", err);
+        }
+      }
+    });
+  }
 
   function getFormState() {
     const rows = Array.from(
