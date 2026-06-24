@@ -1,3 +1,5 @@
+![visual-asset](https://github.com/alman-os/beaver-to-JSON/blob/main/BVJS_image_1.png)
+
 # BeaverJSON
 
 Build JSON Schemas for LLM structured-output prompts. macOS app, runs locally, no network calls.
