@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-24 - Bugfixes and library optimizations (v2.2)
+
+### Fixed
+- **Download JSON now saves a file.** It used the browser `<a download>` trick, which WKWebView ignores — it navigated to the blob URL and dumped the raw schema into the window instead of saving. Download now goes through a native Save panel via the Python bridge.
+
+### Added
+- **Output library** — saved schemas default to `~/Documents/AOS/BeaverToJSON/` (created on demand; you can still save anywhere from the dialog).
+- **Save-location label** under the generated schema showing where downloads go.
+- **Open Library button** that opens the output folder in Finder.
+
 ## 2026-06-19 - Presets, Reset, and notarized distribution (v2.1)
 
 ### Added

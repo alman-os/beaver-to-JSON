@@ -163,8 +163,8 @@ app = BUNDLE(
     info_plist={
         'CFBundleName': 'BeaverToJSON',
         'CFBundleDisplayName': 'Beaver to JSON',
-        'CFBundleVersion': '1.0.0',
-        'CFBundleShortVersionString': '1.0.0',
+        'CFBundleVersion': '2.2.0',
+        'CFBundleShortVersionString': '2.2.0',
         'NSHighResolutionCapable': 'True',
     },
 )

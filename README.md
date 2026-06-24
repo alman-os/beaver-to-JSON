@@ -4,6 +4,8 @@ Build JSON Schemas for LLM structured-output prompts. macOS app, runs locally, n
 
 You give it field names, types, and descriptions; it writes the JSON Schema you paste into Claude, GPT, Gemini, or whatever needs a strict response format. Save reusable shapes as presets so you stop rewriting the same five-prompt schema by hand.
 
+**Latest release: v2.2 — bugfixes and library optimizations.** Download JSON now saves through a native dialog, with an output library at `~/Documents/AOS/BeaverToJSON/`. Full history in the [changelog](CHANGELOG.md).
+
 ## Table of Contents
 
 - [What Does This Do](#what-does-this-do)
@@ -29,7 +31,7 @@ You give it field names, types, and descriptions; it writes the JSON Schema you 
 
 ### Option A: Download the signed DMG (recommended)
 
-1. Grab `BeaverToJSON.dmg` from the latest [Release](https://github.com/alman-os/beaver-to-JSON/releases).
+1. Grab `BeaverToJSON_v2-2_macOS-silicon.dmg` from the latest [Release](https://github.com/alman-os/beaver-to-JSON/releases).
 2. Open the DMG, drag `BeaverToJSON.app` to Applications.
 3. Launch from Applications.
 
